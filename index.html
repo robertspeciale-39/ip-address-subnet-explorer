@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IP & Subnet Calculator // CyberSpesh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Oxanium:wght@300;400;600;800&family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&family=Courier+Prime:wght@400;700&family=Space+Mono:wght@400;700&family=Orbitron:wght@400;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+/* ─── THEME SYSTEM ─── */
+:root { --transition: 0.4s cubic-bezier(.4,0,.2,1); }
+
+body.matrix {
+  --bg: #000000; --bg2: #050f05; --bg3: #071207;
+  --primary: #009c00; --primary-dim: #006400;
+  --glow: #00ff41; --glow-rgba: rgba(0,255,65,0.30);
+  --text: #00cc00; --text-dim: #005500; --text-bright: #00ff41;
+  --panel-bg: rgba(0,18,0,0.92); --panel-border: rgba(0,156,0,0.40);
+  --btn-bg: rgba(0,35,0,0.65); --btn-border: rgba(0,156,0,0.5);
+  --btn-hover-bg: rgba(0,60,0,0.85);
+  --font-mono: 'Share Tech Mono', monospace;
+  --scanline: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);
+  --grid-line: rgba(0,156,0,0.08);
+  --accent-bar: linear-gradient(90deg,#009c00,#00ff41,#009c00);
+  --octet-good: #00ff41; --octet-bad: #ff3c3c;
+  --bit-1: #00ff41; --bit-0: #003300;
+  --tag-bg: rgba(0,156,0,0.18); --tag-border: rgba(0,255,65,0.4);
+  --ip-class-a: rgba(0,100,0,0.35); --ip-class-b: rgba(0,70,50,0.35); --ip-class-c: rgba(0,50,80,0.35);
+}
+body.galaxy {
+  --bg: #00009c; --bg2: #1a0080; --bg3: #0d0060;
+  --primary: #a855f7; --primary-dim: #6d28d9;
+  --glow: #e879f9; --glow-rgba: rgba(232,121,249,0.28);
+  --text: #c4b5fd; --text-dim: #7c3aed; --text-bright: #f0abfc;
+  --panel-bg: rgba(10,0,60,0.92); --panel-border: rgba(168,85,247,0.35);
+  --btn-bg: rgba(30,0,80,0.65); --btn-border: rgba(168,85,247,0.5);
+  --btn-hover-bg: rgba(60,0,120,0.85);
+  --font-mono: 'Oxanium', monospace;
+  --scanline: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.09) 2px,rgba(0,0,0,0.09) 4px);
+  --grid-line: rgba(168,85,247,0.08);
+  --accent-bar: linear-gradient(90deg,#a855f7,#e879f9,#a855f7);
+  --octet-good: #e879f9; --octet-bad: #ff6b8a;
+  --bit-1: #e879f9; --bit-0: #1a0050;
+  --tag-bg: rgba(168,85,247,0.18); --tag-border: rgba(232,121,249,0.4);
+  --ip-class-a: rgba(80,30,120,0.35); --ip-class-b: rgba(50,20,100,0.35); --ip-class-c: rgba(30,10,80,0.35);
+}
+body.arctic {
+  --bg: #020b14; --bg2: #041525; --bg3: #071e33;
+  --primary: #00b4d8; --primary-dim: #0077a8;
+  --glow: #90e0ef; --glow-rgba: rgba(144,224,239,0.25);
+  --text: #72b8d4; --text-dim: #1e5f7a; --text-bright: #caf0f8;
+  --panel-bg: rgba(2,20,35,0.93); --panel-border: rgba(0,180,216,0.35);
+  --btn-bg: rgba(0,30,55,0.65); --btn-border: rgba(0,180,216,0.5);
+  --btn-hover-bg: rgba(0,60,90,0.85);
+  --font-mono: 'Courier Prime', monospace;
+  --scanline: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);
+  --grid-line: rgba(0,180,216,0.08);
+  --accent-bar: linear-gradient(90deg,#00b4d8,#90e0ef,#00b4d8);
+  --octet-good: #90e0ef; --octet-bad: #ff7096;
+  --bit-1: #90e0ef; --bit-0: #051525;
+  --tag-bg: rgba(0,180,216,0.15); --tag-border: rgba(144,224,239,0.4);
+  --ip-class-a: rgba(0,60,90,0.35); --ip-class-b: rgba(0,40,70,0.35); --ip-class-c: rgba(0,30,55,0.35);
+}
+
+/* ─── RESET & BASE ─── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background-color: var(--bg);
+  background-image: var(--scanline);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background-color var(--transition), color var(--transition);
+  overflow-x: hidden;
+}
+
+/* Blueprint grid background */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── HEADER ─── */
+#app-header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(18px) saturate(180%);
+  border-bottom: 1px solid var(--panel-border);
+  padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 0 30px var(--glow-rgba);
+}
+#app-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+  background: var(--accent-bar);
+  opacity: 0.6;
+}
+
+.header-title {
+  font-family: 'Orbitron', monospace;
+  font-weight: 900; font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  color: var(--text-bright);
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 18px var(--glow-rgba);
+  white-space: nowrap;
+}
+.cursor::after {
+  content: '_';
+  animation: blink 1s step-end infinite;
+  color: var(--glow);
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.header-sub {
+  font-family: var(--font-mono);
+  font-size: 0.68rem; letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.theme-switcher {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+}
+.theme-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem; letter-spacing: 0.12em;
+  color: var(--text-dim);
+}
+.theme-btn {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.58rem; font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 5px 10px;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  color: var(--text-dim);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.25s;
+  text-transform: uppercase;
+}
+.theme-btn:hover { background: var(--btn-hover-bg); color: var(--text); }
+.theme-btn.active {
+  background: var(--btn-hover-bg);
+  color: var(--text-bright);
+  border-color: var(--glow);
+  box-shadow: 0 0 8px var(--glow-rgba);
+}
+
+/* ─── MAIN LAYOUT ─── */
+#main-content {
+  position: relative; z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 28px 24px 60px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 20px;
+}
+
+/* ─── PANELS ─── */
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 22px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  backdrop-filter: blur(8px);
+}
+.panel:hover { box-shadow: 0 0 24px var(--glow-rgba); }
+.panel::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--accent-bar);
+  opacity: 0.5;
+}
+
+.panel-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 18px;
+  display: flex; align-items: center; gap: 8px;
+}
+.panel-title .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--glow);
+  box-shadow: 0 0 6px var(--glow);
+  animation: pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.85)} }
+
+/* span full width */
+.span-full { grid-column: 1 / -1; }
+
+/* ─── INPUT SECTION ─── */
+.ip-input-group {
+  display: flex; align-items: center; gap: 0;
+  margin-bottom: 20px;
+}
+.octet-wrap {
+  display: flex; align-items: center; gap: 0; flex: 1;
+}
+.octet-input {
+  width: 52px;
+  font-family: var(--font-mono);
+  font-size: 1.4rem; font-weight: 700;
+  text-align: center;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid var(--panel-border);
+  color: var(--text-bright);
+  padding: 10px 0;
+  border-radius: 4px;
+  outline: none;
+  transition: all 0.2s;
+  -moz-appearance: textfield;
+}
+.octet-input::-webkit-inner-spin-button { display: none; }
+.octet-input:focus {
+  border-color: var(--glow);
+  box-shadow: 0 0 10px var(--glow-rgba);
+  background: rgba(0,0,0,0.8);
+}
+.octet-input.invalid { border-color: var(--octet-bad); color: var(--octet-bad); }
+.octet-sep {
+  font-family: var(--font-mono);
+  font-size: 1.5rem; font-weight: 900;
+  color: var(--glow);
+  padding: 0 3px;
+  user-select: none;
+}
+
+.slash { font-family: var(--font-mono); font-size: 1.3rem; color: var(--text-dim); padding: 0 12px; }
+
+.cidr-input {
+  width: 54px;
+  font-family: var(--font-mono);
+  font-size: 1.4rem; font-weight: 700;
+  text-align: center;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid var(--panel-border);
+  color: var(--text-bright);
+  padding: 10px 0;
+  border-radius: 4px;
+  outline: none;
+  transition: all 0.2s;
+  -moz-appearance: textfield;
+}
+.cidr-input::-webkit-inner-spin-button { display: none; }
+.cidr-input:focus { border-color: var(--glow); box-shadow: 0 0 10px var(--glow-rgba); }
+
+.calc-btn {
+  margin-left: 14px;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 12px 18px;
+  background: var(--btn-hover-bg);
+  border: 1px solid var(--glow);
+  color: var(--glow);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px var(--glow-rgba);
+}
+.calc-btn:hover { box-shadow: 0 0 22px var(--glow-rgba); background: var(--panel-border); }
+.calc-btn:active { transform: scale(0.97); }
+
+.cidr-slider-row {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
+}
+.cidr-label {
+  font-family: var(--font-mono); font-size: 0.7rem;
+  color: var(--text-dim); white-space: nowrap;
+}
+.cidr-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 3px;
+  background: linear-gradient(90deg, var(--glow) calc(var(--pct, 50%) * 1%), var(--bg3) calc(var(--pct, 50%) * 1%));
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.cidr-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--glow);
+  box-shadow: 0 0 8px var(--glow);
+  cursor: pointer;
+}
+.cidr-val {
+  font-family: var(--font-mono); font-size: 0.9rem;
+  color: var(--text-bright);
+  min-width: 24px; text-align: right;
+}
+
+/* ─── BINARY VISUALIZER ─── */
+.binary-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: nowrap;
+}
+.binary-label {
+  font-family: var(--font-mono); font-size: 0.62rem;
+  color: var(--text-dim); min-width: 40px; letter-spacing: 0.06em;
+}
+.bit-group {
+  display: flex; gap: 2px; align-items: center;
+}
+.bit-group + .bit-group { margin-left: 6px; }
+.bit {
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  transition: all 0.18s;
+  cursor: default;
+}
+.bit.b1 {
+  background: rgba(0,0,0,0.5);
+  color: var(--bit-1);
+  border-color: var(--bit-1);
+  box-shadow: 0 0 4px var(--glow-rgba);
+}
+.bit.b0 {
+  background: var(--bit-0);
+  color: var(--text-dim);
+  border-color: rgba(255,255,255,0.05);
+}
+.bit.network { box-shadow: inset 0 0 0 1px var(--glow); }
+.bit.host { opacity: 0.7; }
+
+/* ─── RESULTS GRID ─── */
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.res-item {
+  background: rgba(0,0,0,0.45);
+  border: 1px solid var(--panel-border);
+  border-radius: 5px;
+  padding: 10px 14px;
+  position: relative;
+  transition: border-color 0.2s;
+}
+.res-item:hover { border-color: var(--glow); }
+.res-item.full { grid-column: 1/-1; }
+.res-key {
+  font-family: var(--font-mono); font-size: 0.6rem;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-dim); margin-bottom: 4px;
+}
+.res-val {
+  font-family: var(--font-mono); font-size: 1rem; font-weight: 700;
+  color: var(--text-bright);
+  word-break: break-all;
+}
+.res-val.big { font-size: 1.1rem; }
+
+/* Class badge */
+.class-badge {
+  display: inline-block;
+  font-family: 'Orbitron', monospace; font-size: 0.6rem; font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 2px;
+  border: 1px solid var(--tag-border);
+  background: var(--tag-bg);
+  color: var(--text-bright);
+  letter-spacing: 0.1em;
+  margin-left: 8px;
+}
+.private-tag {
+  font-family: var(--font-mono); font-size: 0.6rem;
+  padding: 2px 7px;
+  border-radius: 2px;
+  border: 1px solid rgba(255,200,0,0.4);
+  background: rgba(255,200,0,0.08);
+  color: #ffd700;
+  margin-left: 6px;
+}
+
+/* ─── SUBNET LIST ─── */
+.subnet-controls {
+  display: flex; gap: 10px; align-items: center; margin-bottom: 14px; flex-wrap: wrap;
+}
+.subnet-controls label {
+  font-family: var(--font-mono); font-size: 0.7rem;
+  color: var(--text-dim);
+}
+.subnet-controls input {
+  width: 60px;
+  font-family: var(--font-mono); font-size: 0.85rem;
+  text-align: center;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid var(--panel-border);
+  color: var(--text-bright);
+  padding: 5px 4px;
+  border-radius: 3px;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.subnet-controls input::-webkit-inner-spin-button { display: none; }
+.subnet-controls input:focus { border-color: var(--glow); }
+.subnet-controls select {
+  font-family: var(--font-mono); font-size: 0.75rem;
+  background: rgba(0,0,0,0.7);
+  border: 1px solid var(--panel-border);
+  color: var(--text);
+  padding: 5px 8px;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+.subnet-controls select:focus { border-color: var(--glow); }
+
+.subnet-table-wrap {
+  max-height: 320px;
+  overflow-y: auto;
+  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+}
+.subnet-table-wrap::-webkit-scrollbar { width: 6px; }
+.subnet-table-wrap::-webkit-scrollbar-track { background: var(--bg); }
+.subnet-table-wrap::-webkit-scrollbar-thumb { background: var(--primary-dim); border-radius: 3px; }
+.subnet-table {
+  width: 100%; border-collapse: collapse;
+  font-family: var(--font-mono); font-size: 0.72rem;
+}
+.subnet-table th {
+  position: sticky; top: 0;
+  background: rgba(0,0,0,0.9);
+  color: var(--text-dim);
+  padding: 8px 12px; text-align: left;
+  border-bottom: 1px solid var(--panel-border);
+  letter-spacing: 0.08em; font-size: 0.62rem; text-transform: uppercase;
+  font-family: 'Orbitron', monospace;
+}
+.subnet-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  color: var(--text);
+  white-space: nowrap;
+}
+.subnet-table tr:hover td { background: rgba(255,255,255,0.03); color: var(--text-bright); }
+.subnet-table tr:last-child td { border-bottom: none; }
+.subnet-table td:first-child { color: var(--text-dim); }
+
+/* ─── WILDCARD / PROTOCOL CHEAT SHEET ─── */
+.ref-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+.ref-card {
+  background: rgba(0,0,0,0.45);
+  border: 1px solid var(--panel-border);
+  border-radius: 5px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 3px solid var(--primary-dim);
+}
+.ref-card:hover {
+  border-color: var(--glow);
+  border-left-color: var(--glow);
+  box-shadow: 0 0 14px var(--glow-rgba);
+}
+.ref-card.selected {
+  border-left-color: var(--glow);
+  background: var(--tag-bg);
+}
+.ref-name { font-family: 'Orbitron', monospace; font-size: 0.68rem; color: var(--text-dim); letter-spacing: 0.1em; margin-bottom: 4px; }
+.ref-val { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 700; color: var(--text-bright); }
+.ref-desc { font-family: 'Rajdhani', sans-serif; font-size: 0.75rem; color: var(--text-dim); margin-top: 3px; }
+
+/* ─── STATUS BAR ─── */
+#status-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 99;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--panel-border);
+  padding: 7px 28px;
+  display: flex; align-items: center; gap: 20px;
+  font-family: var(--font-mono); font-size: 0.62rem;
+  color: var(--text-dim);
+}
+#status-bar::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: var(--accent-bar); opacity: 0.4;
+}
+.status-item { display: flex; gap: 6px; }
+.status-key { color: var(--text-dim); }
+.status-val { color: var(--text-bright); }
+.status-sep { color: var(--text-dim); opacity: 0.3; }
+
+/* ─── TOOLTIP ─── */
+.tooltip-anchor { position: relative; display: inline-block; }
+.tooltip-anchor:hover .tooltip { opacity: 1; pointer-events: auto; transform: translateY(-4px); }
+.tooltip {
+  position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%) translateY(0);
+  background: rgba(0,0,0,0.95);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-family: var(--font-mono); font-size: 0.68rem;
+  color: var(--text);
+  white-space: nowrap;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 200;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+/* ─── EMPTY STATE ─── */
+.empty-state {
+  text-align: center; padding: 40px 20px;
+  font-family: var(--font-mono); color: var(--text-dim); font-size: 0.8rem;
+  letter-spacing: 0.05em;
+}
+.empty-state .es-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
+
+/* ─── ANIMATION ─── */
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.fade-in { animation: fadeIn 0.3s ease both; }
+
+/* ─── VALID INDICATOR ─── */
+.valid-dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+  margin-right: 6px; vertical-align: middle;
+}
+.valid-dot.ok { background: var(--octet-good); box-shadow: 0 0 5px var(--octet-good); }
+.valid-dot.err { background: var(--octet-bad); box-shadow: 0 0 5px var(--octet-bad); }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 900px) {
+  #main-content { grid-template-columns: 1fr; }
+  .span-full { grid-column: 1; }
+}
+@media (max-width: 600px) {
+  .results-grid { grid-template-columns: 1fr; }
+  .octet-input { width: 44px; font-size: 1.1rem; }
+}
+</style>
+</head>
+<body class="matrix">
+
+<!-- HEADER -->
+<header id="app-header">
+  <div>
+    <div class="header-title">IP &amp; Subnet Calculator<span class="cursor"></span></div>
+    <div class="header-sub">// CompTIA Network+ N10-009 Aligned // West CTA Cybersecurity</div>
+  </div>
+  <div class="theme-switcher">
+    <span class="theme-label">THEME:</span>
+    <button class="theme-btn active" onclick="setTheme('matrix',this)">Matrix</button>
+    <button class="theme-btn" onclick="setTheme('galaxy',this)">Galaxy</button>
+    <button class="theme-btn" onclick="setTheme('arctic',this)">Arctic</button>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div id="main-content">
+
+  <!-- ── INPUT PANEL ── -->
+  <div class="panel span-full">
+    <div class="panel-title"><span class="dot"></span>IP ADDRESS INPUT</div>
+
+    <div class="ip-input-group">
+      <div class="octet-wrap">
+        <input class="octet-input" id="o1" type="number" min="0" max="255" value="192" oninput="syncFromOctets()">
+        <span class="octet-sep">.</span>
+        <input class="octet-input" id="o2" type="number" min="0" max="255" value="168" oninput="syncFromOctets()">
+        <span class="octet-sep">.</span>
+        <input class="octet-input" id="o3" type="number" min="0" max="255" value="1" oninput="syncFromOctets()">
+        <span class="octet-sep">.</span>
+        <input class="octet-input" id="o4" type="number" min="0" max="255" value="100" oninput="syncFromOctets()">
+      </div>
+      <span class="slash">/</span>
+      <input class="cidr-input" id="cidr" type="number" min="0" max="32" value="24" oninput="syncFromCIDR()">
+      <button class="calc-btn" onclick="calculate()">▶ CALCULATE</button>
+    </div>
+
+    <div class="cidr-slider-row">
+      <span class="cidr-label">CIDR: /</span>
+      <input type="range" class="cidr-slider" id="cidr-slider" min="0" max="32" value="24" oninput="sliderChanged(this)">
+      <span class="cidr-val" id="cidr-disp">24</span>
+    </div>
+  </div>
+
+  <!-- ── BINARY VISUALIZER ── -->
+  <div class="panel">
+    <div class="panel-title"><span class="dot"></span>BINARY BREAKDOWN</div>
+    <div id="binary-vis">
+      <div class="empty-state"><div class="es-icon">⬛</div>Enter an IP and calculate</div>
+    </div>
+  </div>
+
+  <!-- ── RESULTS ── -->
+  <div class="panel">
+    <div class="panel-title"><span class="dot"></span>NETWORK DETAILS</div>
+    <div id="results-panel">
+      <div class="empty-state"><div class="es-icon">📡</div>Results appear here</div>
+    </div>
+  </div>
+
+  <!-- ── SUBNET SPLITS ── -->
+  <div class="panel span-full">
+    <div class="panel-title"><span class="dot"></span>SUBNET ALLOCATION TABLE</div>
+    <div class="subnet-controls">
+      <label>SPLIT INTO</label>
+      <input type="number" id="split-count" min="1" max="256" value="4" oninput="renderSubnets()">
+      <label>SUBNETS &nbsp;|&nbsp; VIEW</label>
+      <select id="view-mode" onchange="renderSubnets()">
+        <option value="subnets">Equal Subnets</option>
+        <option value="hosts">By Host Count</option>
+      </select>
+      <input type="number" id="host-count" min="1" max="16777214" value="50" style="display:none" oninput="renderSubnets()">
+    </div>
+    <div class="subnet-table-wrap">
+      <table class="subnet-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Network Address</th>
+            <th>First Host</th>
+            <th>Last Host</th>
+            <th>Broadcast</th>
+            <th>Subnet Mask</th>
+            <th>Hosts</th>
+          </tr>
+        </thead>
+        <tbody id="subnet-body">
+          <tr><td colspan="7" class="empty-state">Calculate first</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── COMMON SUBNETS CHEAT SHEET ── -->
+  <div class="panel span-full">
+    <div class="panel-title"><span class="dot"></span>COMMON CIDR QUICK REFERENCE</div>
+    <div class="ref-grid" id="ref-grid">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+</div><!-- /#main-content -->
+
+<!-- STATUS BAR -->
+<div id="status-bar">
+  <div class="status-item"><span class="status-key">IP:</span><span class="status-val" id="s-ip">–</span></div>
+  <span class="status-sep">|</span>
+  <div class="status-item"><span class="status-key">CIDR:</span><span class="status-val" id="s-cidr">–</span></div>
+  <span class="status-sep">|</span>
+  <div class="status-item"><span class="status-key">CLASS:</span><span class="status-val" id="s-class">–</span></div>
+  <span class="status-sep">|</span>
+  <div class="status-item"><span class="status-key">HOSTS:</span><span class="status-val" id="s-hosts">–</span></div>
+  <span class="status-sep">|</span>
+  <div class="status-item"><span class="status-key">NETWORK:</span><span class="status-val" id="s-net">–</span></div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+//  THEME
+// ─────────────────────────────────────────────
+function setTheme(t, btn) {
+  document.body.className = t;
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateSliderGradient();
+}
+
+// ─────────────────────────────────────────────
+//  SLIDER SYNC
+// ─────────────────────────────────────────────
+function sliderChanged(el) {
+  const v = parseInt(el.value);
+  document.getElementById('cidr').value = v;
+  document.getElementById('cidr-disp').textContent = v;
+  updateSliderGradient();
+  calculate();
+}
+function syncFromCIDR() {
+  let v = parseInt(document.getElementById('cidr').value);
+  v = Math.max(0, Math.min(32, isNaN(v) ? 24 : v));
+  document.getElementById('cidr-slider').value = v;
+  document.getElementById('cidr-disp').textContent = v;
+  updateSliderGradient();
+  calculate();
+}
+function syncFromOctets() {
+  validateOctets();
+  calculate();
+}
+function updateSliderGradient() {
+  const sl = document.getElementById('cidr-slider');
+  const pct = (parseInt(sl.value) / 32) * 100;
+  sl.style.setProperty('--pct', pct + '%');
+}
+
+function validateOctets() {
+  ['o1','o2','o3','o4'].forEach(id => {
+    const el = document.getElementById(id);
+    const v = parseInt(el.value);
+    if (isNaN(v) || v < 0 || v > 255) el.classList.add('invalid');
+    else el.classList.remove('invalid');
+  });
+}
+
+// ─────────────────────────────────────────────
+//  CORE MATH
+// ─────────────────────────────────────────────
+function ipToInt(o) {
+  return ((o[0] & 0xFF) << 24 | (o[1] & 0xFF) << 16 | (o[2] & 0xFF) << 8 | (o[3] & 0xFF)) >>> 0;
+}
+function intToIp(n) {
+  n = n >>> 0;
+  return [(n >>> 24) & 0xFF, (n >>> 16) & 0xFF, (n >>> 8) & 0xFF, n & 0xFF].join('.');
+}
+function cidrToMask(cidr) {
+  return cidr === 0 ? 0 : (0xFFFFFFFF << (32 - cidr)) >>> 0;
+}
+function maskToCidr(mask) {
+  let c = 0, m = mask >>> 0;
+  while (m & 0x80000000) { c++; m = (m << 1) >>> 0; }
+  return c;
+}
+function intToWild(mask) { return (~mask) >>> 0; }
+
+function getClass(firstOctet) {
+  if (firstOctet < 128)  return 'A';
+  if (firstOctet < 192)  return 'B';
+  if (firstOctet < 224)  return 'C';
+  if (firstOctet < 240)  return 'D (Multicast)';
+  return 'E (Reserved)';
+}
+function isPrivate(o) {
+  if (o[0] === 10) return true;
+  if (o[0] === 172 && o[1] >= 16 && o[1] <= 31) return true;
+  if (o[0] === 192 && o[1] === 168) return true;
+  return false;
+}
+function isLoopback(o) { return o[0] === 127; }
+function isAPIPP(o)    { return o[0] === 169 && o[1] === 254; }
+
+function formatNum(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(2) + 'K';
+  return n.toLocaleString();
+}
+
+// ─────────────────────────────────────────────
+//  CALCULATE
+// ─────────────────────────────────────────────
+let lastCalc = null;
+
+function calculate() {
+  validateOctets();
+  const o = ['o1','o2','o3','o4'].map(id => parseInt(document.getElementById(id).value));
+  const cidr = parseInt(document.getElementById('cidr').value);
+
+  if (o.some(x => isNaN(x) || x < 0 || x > 255) || isNaN(cidr) || cidr < 0 || cidr > 32) {
+    setStatus('–','–','–','–','–');
+    return;
+  }
+
+  const ipInt  = ipToInt(o);
+  const mask   = cidrToMask(cidr);
+  const wild   = intToWild(mask);
+  const netInt = (ipInt & mask) >>> 0;
+  const bcast  = (netInt | wild) >>> 0;
+  const firstH = cidr < 31 ? (netInt + 1) >>> 0 : netInt;
+  const lastH  = cidr < 31 ? (bcast - 1) >>> 0 : bcast;
+  const hosts  = cidr >= 31 ? (cidr === 32 ? 1 : 2) : Math.max(0, bcast - netInt - 1);
+
+  const ipClass = getClass(o[0]);
+  const priv    = isPrivate(o);
+  const loop    = isLoopback(o);
+  const apipa   = isAPIPP(o);
+  const maskStr = intToIp(mask);
+  const wildStr = intToIp(wild);
+  const netStr  = intToIp(netInt);
+  const bcastStr= intToIp(bcast);
+  const firstStr= intToIp(firstH);
+  const lastStr = intToIp(lastH);
+
+  lastCalc = { o, cidr, ipInt, mask, wild, netInt, bcast, firstH, lastH, hosts, netStr, bcastStr, maskStr, wildStr, firstStr, lastStr, ipClass, priv };
+
+  renderBinary(o, cidr);
+  renderResults(netStr, bcastStr, maskStr, wildStr, firstStr, lastStr, hosts, cidr, ipClass, priv, loop, apipa, o);
+  renderSubnets();
+  setStatus(o.join('.'), '/'+cidr, ipClass, formatNum(hosts), netStr);
+}
+
+function setStatus(ip,cidr,cls,hosts,net) {
+  document.getElementById('s-ip').textContent    = ip;
+  document.getElementById('s-cidr').textContent  = cidr;
+  document.getElementById('s-class').textContent = cls;
+  document.getElementById('s-hosts').textContent = hosts;
+  document.getElementById('s-net').textContent   = net;
+}
+
+// ─────────────────────────────────────────────
+//  BINARY VISUALIZER
+// ─────────────────────────────────────────────
+function renderBinary(octets, cidr) {
+  const container = document.getElementById('binary-vis');
+  const rows = [
+    { label: 'IP ADDR', values: octets },
+    { label: 'MASK', values: intToIp(cidrToMask(cidr)).split('.').map(Number) },
+    { label: 'NETWORK', values: intToIp((ipToInt(octets) & cidrToMask(cidr)) >>> 0).split('.').map(Number) },
+    { label: 'WILDCARD', values: intToIp(intToWild(cidrToMask(cidr))).split('.').map(Number) },
+  ];
+
+  let html = '';
+  rows.forEach(row => {
+    html += `<div class="binary-row">
+      <span class="binary-label">${row.label}</span>`;
+    let bitPos = 0;
+    row.values.forEach((oct, gi) => {
+      html += `<div class="bit-group">`;
+      for (let b = 7; b >= 0; b--) {
+        const isSet = (oct >> b) & 1;
+        const isNet = bitPos < cidr;
+        html += `<div class="bit ${isSet ? 'b1' : 'b0'} ${isNet ? 'network' : 'host'}">${isSet}</div>`;
+        bitPos++;
+      }
+      html += `</div>`;
+      if (gi < 3) html += `<span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim);padding:0 2px">.</span>`;
+    });
+    html += `</div>`;
+  });
+
+  // bit position legend
+  html += `<div class="binary-row" style="margin-top:4px">
+    <span class="binary-label" style="font-size:0.5rem">POSITION</span>`;
+  for (let g = 0; g < 4; g++) {
+    html += `<div class="bit-group">`;
+    for (let b = 7; b >= 0; b--) {
+      const pos = g * 8 + (7 - b);
+      html += `<div class="bit b0" style="font-size:0.38rem;width:18px;height:14px;color:var(--text-dim)">${pos}</div>`;
+    }
+    html += `</div>`;
+    if (g < 3) html += `<span style="font-family:var(--font-mono);font-size:0.7rem;color:transparent;padding:0 2px">.</span>`;
+  }
+  html += `</div>`;
+
+  // legend
+  html += `<div style="display:flex;gap:14px;margin-top:10px;font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim)">
+    <span><span style="display:inline-block;width:10px;height:10px;border:1px solid var(--glow);box-shadow:inset 0 0 0 1px var(--glow);border-radius:1px;vertical-align:middle;margin-right:5px"></span>NETWORK BITS</span>
+    <span><span style="display:inline-block;width:10px;height:10px;border:1px solid rgba(255,255,255,0.07);border-radius:1px;vertical-align:middle;margin-right:5px"></span>HOST BITS</span>
+  </div>`;
+
+  container.innerHTML = html;
+}
+
+// ─────────────────────────────────────────────
+//  RESULTS
+// ─────────────────────────────────────────────
+function renderResults(net, bcast, mask, wild, first, last, hosts, cidr, cls, priv, loop, apipa, o) {
+  const tags = [];
+  if (priv)  tags.push('<span class="private-tag">RFC-1918 PRIVATE</span>');
+  if (loop)  tags.push('<span class="private-tag">LOOPBACK</span>');
+  if (apipa) tags.push('<span class="private-tag">APIPA</span>');
+
+  document.getElementById('results-panel').innerHTML = `
+  <div class="results-grid fade-in">
+    <div class="res-item full">
+      <div class="res-key">IP / CIDR</div>
+      <div class="res-val big">${o.join('.')} <span class="class-badge">/${cidr}</span>
+        <span class="class-badge">CLASS ${cls}</span>${tags.join('')}
+      </div>
+    </div>
+    <div class="res-item">
+      <div class="res-key">Network Address</div>
+      <div class="res-val">${net}</div>
+    </div>
+    <div class="res-item">
+      <div class="res-key">Broadcast Address</div>
+      <div class="res-val">${bcast}</div>
+    </div>
+    <div class="res-item">
+      <div class="res-key">First Usable Host</div>
+      <div class="res-val">${first}</div>
+    </div>
+    <div class="res-item">
+      <div class="res-key">Last Usable Host</div>
+      <div class="res-val">${last}</div>
+    </div>
+    <div class="res-item">
+      <div class="res-key">Subnet Mask</div>
+      <div class="res-val">${mask}</div>
+    </div>
+    <div class="res-item">
+      <div class="res-key">Wildcard Mask</div>
+      <div class="res-val">${wild}</div>
+    </div>
+    <div class="res-item">
+      <div class="res-key">Usable Hosts</div>
+      <div class="res-val big">${hosts.toLocaleString()}</div>
+    </div>
+    <div class="res-item">
+      <div class="res-key">Total Addresses</div>
+      <div class="res-val">${Math.pow(2,32-cidr).toLocaleString()}</div>
+    </div>
+    <div class="res-item">
+      <div class="res-key">Hex IP</div>
+      <div class="res-val">${o.map(x=>x.toString(16).padStart(2,'0').toUpperCase()).join(':')}</div>
+    </div>
+    <div class="res-item">
+      <div class="res-key">IP Integer</div>
+      <div class="res-val">${ipToInt(o)}</div>
+    </div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────
+//  SUBNET TABLE
+// ─────────────────────────────────────────────
+function renderSubnets() {
+  const tbody = document.getElementById('subnet-body');
+  const mode = document.getElementById('view-mode').value;
+  document.getElementById('host-count').style.display = mode === 'hosts' ? '' : 'none';
+
+  if (!lastCalc) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Calculate first</td></tr>';
+    return;
+  }
+
+  const { netInt, cidr } = lastCalc;
+  let subCidr, count;
+
+  if (mode === 'subnets') {
+    count = parseInt(document.getElementById('split-count').value) || 4;
+    count = Math.max(1, Math.min(count, 256));
+    const bits = Math.ceil(Math.log2(count));
+    subCidr = Math.min(32, cidr + bits);
+    count = Math.min(count, Math.pow(2, subCidr - cidr));
+  } else {
+    const neededHosts = parseInt(document.getElementById('host-count').value) || 50;
+    const hostBits = Math.ceil(Math.log2(neededHosts + 2));
+    subCidr = Math.max(cidr, 32 - hostBits);
+    count = Math.min(32, Math.pow(2, subCidr - cidr));
+  }
+
+  if (subCidr > 32) { tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Cannot split — insufficient bits</td></tr>'; return; }
+
+  const subSize = Math.pow(2, 32 - subCidr) >>> 0;
+  const subMask = cidrToMask(subCidr);
+  const maskStr = intToIp(subMask);
+  const hosts   = subCidr < 31 ? subSize - 2 : (subCidr === 32 ? 1 : 2);
+
+  let rows = '';
+  for (let i = 0; i < count; i++) {
+    const sn = (netInt + i * subSize) >>> 0;
+    const bc = (sn + subSize - 1) >>> 0;
+    const fh = subCidr < 31 ? (sn + 1) >>> 0 : sn;
+    const lh = subCidr < 31 ? (bc - 1) >>> 0 : bc;
+    rows += `<tr>
+      <td>${i + 1}</td>
+      <td>${intToIp(sn)}/${subCidr}</td>
+      <td>${intToIp(fh)}</td>
+      <td>${intToIp(lh)}</td>
+      <td>${intToIp(bc)}</td>
+      <td>${maskStr}</td>
+      <td>${hosts.toLocaleString()}</td>
+    </tr>`;
+  }
+  tbody.innerHTML = rows;
+}
+
+document.getElementById('view-mode').addEventListener('change', function() {
+  renderSubnets();
+});
+
+// ─────────────────────────────────────────────
+//  CHEAT SHEET
+// ─────────────────────────────────────────────
+const CIDR_REF = [
+  { cidr: 8,  mask: '255.0.0.0',     wild: '0.255.255.255',  hosts: '16,777,214', note: 'Class A — Large ISPs' },
+  { cidr: 16, mask: '255.255.0.0',   wild: '0.0.255.255',    hosts: '65,534',     note: 'Class B — Universities' },
+  { cidr: 24, mask: '255.255.255.0', wild: '0.0.0.255',      hosts: '254',        note: 'Class C — Small LAN' },
+  { cidr: 25, mask: '255.255.255.128',wild:'0.0.0.127',      hosts: '126',        note: 'Half of /24' },
+  { cidr: 26, mask: '255.255.255.192',wild:'0.0.0.63',       hosts: '62',         note: 'Quarter of /24' },
+  { cidr: 27, mask: '255.255.255.224',wild:'0.0.0.31',       hosts: '30',         note: 'Small dept subnet' },
+  { cidr: 28, mask: '255.255.255.240',wild:'0.0.0.15',       hosts: '14',         note: 'Very small subnet' },
+  { cidr: 29, mask: '255.255.255.248',wild:'0.0.0.7',        hosts: '6',          note: 'Point-to-multipoint' },
+  { cidr: 30, mask: '255.255.255.252',wild:'0.0.0.3',        hosts: '2',          note: 'Point-to-point links' },
+  { cidr: 31, mask: '255.255.255.254',wild:'0.0.0.1',        hosts: '2',          note: 'RFC 3021 P2P' },
+  { cidr: 32, mask: '255.255.255.255',wild:'0.0.0.0',        hosts: '1',          note: 'Host route / loopback' },
+  { cidr: 22, mask: '255.255.252.0', wild: '0.0.3.255',      hosts: '1,022',      note: 'Medium LAN / Campus' },
+  { cidr: 20, mask: '255.255.240.0', wild: '0.0.15.255',     hosts: '4,094',      note: 'Large campus block' },
+  { cidr: 12, mask: '255.240.0.0',   wild: '0.15.255.255',   hosts: '1,048,574',  note: '172.16.0.0/12 RFC-1918' },
+];
+
+function buildRefGrid() {
+  const grid = document.getElementById('ref-grid');
+  grid.innerHTML = CIDR_REF.map(r => `
+    <div class="ref-card" onclick="applyRef(${r.cidr})">
+      <div class="ref-name">CIDR /${r.cidr}</div>
+      <div class="ref-val">${r.mask}</div>
+      <div class="ref-desc">Hosts: ${r.hosts}</div>
+      <div class="ref-desc" style="margin-top:3px;font-size:0.68rem;color:var(--text-dim)">${r.note}</div>
+    </div>`).join('');
+}
+
+function applyRef(cidr) {
+  document.getElementById('cidr').value = cidr;
+  document.getElementById('cidr-slider').value = cidr;
+  document.getElementById('cidr-disp').textContent = cidr;
+  updateSliderGradient();
+  calculate();
+  document.getElementById('app-header').scrollIntoView({ behavior:'smooth' });
+}
+
+// ─────────────────────────────────────────────
+//  KEYBOARD SHORTCUTS — tab between octets
+// ─────────────────────────────────────────────
+const octets = ['o1','o2','o3','o4'];
+octets.forEach((id, idx) => {
+  document.getElementById(id).addEventListener('keydown', function(e) {
+    if (e.key === '.' || e.key === 'Tab') {
+      e.preventDefault();
+      const next = octets[idx + 1] ? document.getElementById(octets[idx + 1]) : document.getElementById('cidr');
+      next.focus(); next.select();
+    }
+    if (e.key === 'Enter') calculate();
+  });
+  document.getElementById(id).addEventListener('input', function() {
+    // auto-advance on 3 digits
+    if (this.value.length >= 3 && idx < 3) {
+      document.getElementById(octets[idx + 1]).focus();
+      document.getElementById(octets[idx + 1]).select();
+    }
+  });
+});
+document.getElementById('cidr').addEventListener('keydown', e => { if(e.key==='Enter') calculate(); });
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+updateSliderGradient();
+buildRefGrid();
+calculate();
+</script>
+</body>
+</html>
